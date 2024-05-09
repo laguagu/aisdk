@@ -5,7 +5,9 @@ import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { createStreamableValue } from "ai/rsc";
 import { ReactNode } from "react";
-import {DefaultValues} from "./page";
+import { DefaultValues } from "./page";
+import { OpenAI } from "openai";
+import fs from "fs";
 
 export interface Message {
   role: "user" | "assistant";
@@ -13,11 +15,14 @@ export interface Message {
   display?: ReactNode; // [!code highlight]
 }
 
-
-export async function getNotifications(input: string): Promise<{ notifications: { name: string; message: string; minutesAgo: number; }[] }> {
+export async function getNotifications(
+  input: string
+): Promise<{
+  notifications: { name: string; message: string; minutesAgo: number }[];
+}> {
   "use server";
   console.log("getNotifications called");
-  
+
   const { object: notifications } = await generateObject({
     model: openai("gpt-4-turbo"),
     system: "You generate one notifications for a messages app.",
@@ -33,7 +38,7 @@ export async function getNotifications(input: string): Promise<{ notifications: 
     }),
   });
   console.log(notifications);
-  return notifications ;
+  return notifications;
 }
 
 export async function getRecipe(input: string) {
@@ -88,4 +93,22 @@ export async function generate(input: string) {
   })();
 
   return { object: stream.value };
+}
+
+export async function getWhisperTranscription() {
+  "use server";
+
+  console.log("getWhisperTranscription called");
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  // Lähetä tiedosto Whisper API:lle
+  const response = await openai.audio.transcriptions.create({
+    file: fs.createReadStream("./audioTest.m4a"),
+    model: "whisper-1",
+  });
+  console.log("Whisperin vastaus: ", response.text);
+
+  return response.text;
 }
