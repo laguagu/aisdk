@@ -9,7 +9,7 @@ dotenv.config();
 
 const apiKey =  process.env.OPENAI_API_KEY;
 
-const fileContent = fs.readFileSync('hoito-ohjeet.txt', 'utf8');
+const fileContent = fs.readFileSync('data/hoito-ohjeet.txt', 'utf8');
 
 // Kovakoodattu esimerkki data
 const data = [
