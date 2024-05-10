@@ -96,7 +96,6 @@ export async function POST(req: Request) {
             parser,
         ]);
         
-        return Response.json({ messages: formattedPreviousMessages, currentMessageContent });
         // Convert the response into a friendly text-stream
         const stream = await chain.stream({
             chat_history: formattedPreviousMessages.join('\n'),

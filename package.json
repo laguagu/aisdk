@@ -16,6 +16,7 @@
     "@langchain/google-vertexai": "^0.0.14",
     "@langchain/openai": "^0.0.28",
     "@radix-ui/react-slot": "^1.0.2",
+    "@supabase/supabase-js": "^2.43.1",
     "ai": "^3.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
