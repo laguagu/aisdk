@@ -2,6 +2,8 @@
 import React from "react";
 import { useState } from "react";
 import { getWhisperTranscription } from "../actions";
+import fs from 'fs';
+import path from 'path';
 
 export default function Page() {
   const [file, setFile] = useState(null);
