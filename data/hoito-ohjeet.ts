@@ -1,4 +1,4 @@
-HOITO-OHJEET
+export default `HOITO-OHJEET
 Kokopuisten huonekalujen huolellinen hoito palkitaan esineen pitkäikäisyydellä ja kauniilla patinoitumisella. Kannattaa
 muistaa vuodenaikojen vaihtelun merkitys: kylmä, lämmitystä vaativa talvi-ilmasto kuivattaa sisäilmaa merkittävästi.
 Kaikki elävät materiaalit reagoivat tähän muutokseen. Myös kosteat kesäkuukaudet aiheuttavat puuhun muutoksia, joista
@@ -27,4 +27,4 @@ käyttää tavanomaisia, mietoja kodin puhdistusaineita ja nihkeää riepua. Yle
 lämpimällä vedellä (riepu ei saa olla pinnaltaan hankaava). Mikäli lika ei irtoa normaalissa siivouksessa, pinta
 puhdistetaan valkoisella melamiinisienellä eli ihmesienellä. Sieni nostaa lian pois nanokalvosta. Ihmesientä
 voidaan käyttää myös kuivana, mutta lämmin vesi ja tarvittaessa yleispuhdistusaine tai astianpesuaineliuos
-tehostavat puhdistamista. Lopuksi pinta kannattaa aina pestä lämpimällä vedellä.
+tehostavat puhdistamista. Lopuksi pinta kannattaa aina pestä lämpimällä vedellä.`

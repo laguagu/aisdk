@@ -21,9 +21,7 @@ import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
   });
 
   // Lataa dokumentti
-  const loader = new CheerioWebBaseLoader(
-    "https://www.iltalehti.fi/"
-  );
+  const loader = new CheerioWebBaseLoader("https://www.iltalehti.fi/");
   const docs = await loader.load();
 
   // Splitataan dokumentti
@@ -57,11 +55,11 @@ import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
     combineDocsChain: documentChain,
     retriever,
   });
-  
+
   const result = await retrievalChain.invoke({
     input: "Mitä Riikka Purra sanoi mielenosoittajille?",
   });
-  
+
   console.log(result.answer);
 
   // const prompTemplate = PromptTemplate.fromTemplate(

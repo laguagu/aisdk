@@ -1,3 +1,4 @@
+// Tämä koodi käyttää LangChaini uutta LangChain Expression Language (LCEL) raknnetta https://js.langchain.com/docs/expression_language/
 import { NextRequest, NextResponse } from "next/server";
 import {
   Message as VercelChatMessage,
@@ -5,7 +6,6 @@ import {
   OpenAIStream,
   createStreamDataTransformer,
 } from "ai";
-
 import { createClient } from "@supabase/supabase-js";
 
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
@@ -18,12 +18,11 @@ import {
   StringOutputParser,
 } from "@langchain/core/output_parsers";
 
-export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 // Apufunktio dokumenttien yhdistämiseen yhdeksi tekstiksi.
 const combineDocumentsFn = (docs: Document[]) => {
-  const serializedDocs = docs.map((doc) => doc.pageContent);
-  return serializedDocs.join("\n\n");
+  return docs.map((doc) => doc.pageContent).join("\n\n");
 };
 
 // Apufunktio keskusteluhistorian formaatoinnille viestien roolien mukaan.
@@ -61,7 +60,7 @@ Your role is to offer accurate and thoughtful responses that reflect Nikari's de
 As you formulate your responses, consider the principles of craftsmanship and customer care that Nikari upholds. 
 Provide detailed advice, maintenance tips, or insights into furniture design, tailored to the nuances of the question. Use a tone that is professional yet approachable, mirroring the ethos of a brand that values both heritage and innovation in design.
 
-Answer the question based on the following context and chat history:
+Answer the question based on the following context and chat history if you dont know the answer reply with "I'm sorry, i don't know the answer to that question".:
 <context>
   {context}
 </context>
@@ -74,30 +73,19 @@ Question: {question}
 `;
 const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
 
-/**
- * This handler initializes and calls a retrieval chain. It composes the chain using
- * LangChain Expression Language. See the docs for more information:
- *
- * https://js.langchain.com/docs/guides/expression_language/cookbook#conversational-retrieval-chain
- */
-/**
- * Handles the POST request for language processing.
- * @param req - The NextRequest object representing the incoming request.
- * @returns A response containing the processed language data.
- */
 export async function POST(req: NextRequest) {
   console.log("Request received");
   try {
     const body = await req.json();
-    const messages = body.messages ?? [];
-    const previousMessages = messages.slice(0, -1);
-    const currentMessageContent = messages[messages.length - 1].content;
+    const messages = body.messages ?? []; // Ottaa viestit pyynnön rungosta tai tyhjän taulukon, jos viestejä ei ole
+    const previousMessages = messages.slice(0, -1); // Ottaa kaikki viestit paitsi viimeisen
+    const currentMessageContent = messages[messages.length - 1].content; // Ottaa viimeisen viestin sisällön
 
     // Alustaa OpenAI-mallin ja Supabase-asiakasohjelman.
     const model = new ChatOpenAI({
-      modelName: "gpt-4-turbo-2024-04-09",
+      modelName: "gpt-4-turbo",
       temperature: 0.2,
-      verbose: true,
+      // verbose: true, // Tulostaa lisätietoja, jos true
       streaming: true,
     });
 
@@ -105,10 +93,11 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_PRIVATE_KEY!
     );
+
     const vectorstore = new SupabaseVectorStore(new OpenAIEmbeddings(), {
       client,
-      tableName: "documents",
-      queryName: "match_documents",
+      tableName: "exampleDocs", // Tietokantataulun nimi
+      queryName: "matching_documents", // Kysely funktion nimi
     });
 
     /**
@@ -133,18 +122,21 @@ export async function POST(req: NextRequest) {
       resolveWithDocuments = resolve;
     });
 
+    // Hakee dokumentit Supabase-tietokannasta.
     const retriever = vectorstore.asRetriever({
       callbacks: [
         {
           handleRetrieverEnd(documents) {
-            resolveWithDocuments(documents);
+            console.log("documents", documents); // Tulostaa kaikki haetut dokumentit
+            resolveWithDocuments(documents); // Kun dokumentit on haettu, ratkaisee lupauksen dokumenteilla
           },
         },
       ],
     });
 
-    const retrievalChain = retriever.pipe(combineDocumentsFn);
+    const retrievalChain = retriever.pipe(combineDocumentsFn); // Kombinoi haetut dokumentit yhdeksi tekstiksi
 
+    // Alustaa ketjun vastauksen generoimiseen.
     const answerChain = RunnableSequence.from([
       {
         context: RunnableSequence.from([
@@ -161,8 +153,8 @@ export async function POST(req: NextRequest) {
     // Suorittaa ketjun, joka tuottaa vastauksen käyttäjän kysymykseen.
     const conversationalRetrievalQAChain = RunnableSequence.from([
       {
-        question: standaloneQuestionChain,
-        chat_history: (input) => input.chat_history,
+        question: standaloneQuestionChain, // Saa standalone-kysymyksen ketjusta
+        chat_history: (input) => input.chat_history, // Saa keskusteluhistorian syötteenä
       },
       answerChain,
       new BytesOutputParser(),
@@ -171,12 +163,12 @@ export async function POST(req: NextRequest) {
     // Lähettää vastauksen streamattuna takaisin klientille.
     const stream = await conversationalRetrievalQAChain.stream({
       question: currentMessageContent,
-      chat_history: formatVercelMessages(previousMessages),
+      chat_history: formatVercelMessages(previousMessages), // Muotoilee keskusteluhistorian
     });
     console.log("Response sent");
 
     return new StreamingTextResponse(
-      stream.pipeThrough(createStreamDataTransformer())
+      stream.pipeThrough(createStreamDataTransformer()) // Luo ja muuntaa streamin vastaukselle
     );
   } catch (e: any) {
     console.error(e);
