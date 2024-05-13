@@ -1,13 +1,14 @@
 "use server";
 
-import { generateObject, streamObject } from "ai";
+import { generateObject, streamObject, streamText, generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
-import { createStreamableValue } from "ai/rsc";
+import { createStreamableValue, createStreamableUI } from "ai/rsc";
 import { ReactNode } from "react";
 import { DefaultValues } from "./page";
 import { OpenAI } from "openai";
 import fs from "fs";
+import { nanoid } from "nanoid";
 
 export interface Message {
   role: "user" | "assistant";
@@ -15,9 +16,7 @@ export interface Message {
   display?: ReactNode; // [!code highlight]
 }
 
-export async function getNotifications(
-  input: string
-): Promise<{
+export async function getNotifications(input: string): Promise<{
   notifications: { name: string; message: string; minutesAgo: number }[];
 }> {
   "use server";
@@ -111,4 +110,72 @@ export async function getWhisperTranscription() {
   console.log("Whisperin vastaus: ", response.text);
 
   return response.text;
+}
+
+export async function continueConversation(history: Message[]) {
+  "use server";
+
+  const stream = createStreamableValue();
+
+  (async () => {
+    const { textStream } = await streamText({
+      model: openai("gpt-3.5-turbo"),
+      system:
+        "You are a dude that doesn't drop character until the DVD commentary.",
+      messages: history,
+    });
+
+    for await (const text of textStream) {
+      stream.update(text);
+    }
+
+    stream.done();
+  })();
+
+  return {
+    messages: history,
+    newMessage: stream.value,
+  };
+}
+
+function getWeather({ city, unit }) {
+  // This function would normally make an
+  // API request to get the weather.
+  return { value: 25, description: "Sunny" };
+}
+
+export async function toolCall(history: Message[]) {
+  "use server";
+  const stream = createStreamableUI();
+  const { text, toolResults } = await generateText({
+    model: openai("gpt-3.5-turbo"),
+    system: "You are a friendly weather assistant!",
+    messages: history,
+    tools: {
+      getWeather: {
+        description: "Get the weather for a location",
+        parameters: z.object({
+          city: z.string().describe("The city to get the weather for"),
+          unit: z
+            .enum(["C", "F"])
+            .describe("The unit to display the temperature in"),
+        }),
+        execute: async ({ city, unit }) => {
+          const weather = getWeather({ city, unit });
+          return `It is currently ${weather.value}°C and ${weather.description} in ${city}!`;
+        },
+      },
+    },
+  });
+
+  return {
+    messages: [
+      ...history,
+      {
+        role: "assistant" as const,
+        content:
+          text || toolResults.map((toolResult) => toolResult.result).join("\n"),
+      },
+    ],
+  };
 }

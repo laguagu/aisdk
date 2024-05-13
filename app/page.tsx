@@ -22,12 +22,12 @@ function MyForm({ defaultValues }: { defaultValues: object }) {
   const handleReset = () => {
     // Reset the form fields to empty or default values
     reset({
-      name: '',
-      message: '',
-      minutesAgo: 0
+      name: "",
+      message: "",
+      minutesAgo: 0,
     });
   };
-  
+
   // Reset form with received data
   React.useEffect(() => {
     reset(defaultValues);
