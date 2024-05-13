@@ -9,6 +9,8 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
+import dotenv from "dotenv";
+dotenv.config();
 
 (async () => {
   const output_parsers = new StringOutputParser();
