@@ -10,15 +10,20 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import dotenv from "dotenv";
-dotenv.config();
+
+delete process.env.OPENAI_API_KEY;
+
+dotenv.config({ path: "./.env.local"});
 
 (async () => {
   const output_parsers = new StringOutputParser();
   const splitter = new RecursiveCharacterTextSplitter();
 
   const embeddings = new OpenAIEmbeddings();
-
+  console.log('API KEY:', process.env.OPENAI_API_KEY)
+  
   const chatModel = new ChatOpenAI({
+    model: "gpt-3.5-turbo",
     apiKey: process.env.OPENAI_API_KEY,
   });
 
@@ -59,7 +64,7 @@ dotenv.config();
   });
 
   const result = await retrievalChain.invoke({
-    input: "Mitä Riikka Purra sanoi mielenosoittajille?",
+    input: "Minkä maan yllä on käristyskupoli?",
   });
 
   console.log(result.answer);
