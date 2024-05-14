@@ -23,12 +23,12 @@ dotenv.config({ path: "./.env.local"});
   console.log('API KEY:', process.env.OPENAI_API_KEY)
   
   const chatModel = new ChatOpenAI({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o",
     apiKey: process.env.OPENAI_API_KEY,
   });
 
   // Lataa dokumentti
-  const loader = new CheerioWebBaseLoader("https://www.iltalehti.fi/");
+  const loader = new CheerioWebBaseLoader("https://www.is.fi/");
   const docs = await loader.load();
 
   // Splitataan dokumentti
@@ -64,7 +64,7 @@ dotenv.config({ path: "./.env.local"});
   });
 
   const result = await retrievalChain.invoke({
-    input: "Minkä maan yllä on käristyskupoli?",
+    input: "Missä pieni lapsi pelastettiin?",
   });
 
   console.log(result.answer);
