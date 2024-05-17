@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# LangChain Chat Application
+
+This project demonstrates a chat application built with Next.js, utilizing the LangChain library for document processing, OpenAI's Whisper API for speech-to-text transcription, and Vercel AI SDK for integrating AI capabilities. The application supports various features including streaming text and objects, conversational retrieval with RAG (Retrieval-Augmented Generation) models, and more.
+
+## Features
+
+- **Audio Recording and Transcription**
+  - Record audio directly from the browser.
+  - Transcribe audio to text using OpenAI's Whisper API.
+
+- **Chat Interface**
+  - Interactive chat interface built with Next.js.
+  - Supports streaming text responses using Vercel AI SDK.
+
+- **Document Processing with LangChain**
+  - Load and split documents.
+  - Create embeddings and vector stores.
+  - Implement conversational retrieval with History-Aware Retriever.
+
+- **Generative AI Features**
+  - Generate text and objects using OpenAI models.
+  - Stream text and object responses.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- OpenAI API Key
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Document Processing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application uses LangChain for document processing, including loading, splitting, and creating vector stores from documents. It also supports conversational retrieval with history-aware retrievers.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Generative AI Features
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The application includes various generative AI features, such as generating notifications, recipes, and handling conversational history.
