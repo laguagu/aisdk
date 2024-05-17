@@ -9,6 +9,7 @@ import { DefaultValues } from "./page";
 import { OpenAI } from "openai";
 import fs from "fs";
 import { nanoid } from "nanoid";
+import path from "path";
 
 export interface Message {
   role: "user" | "assistant";
@@ -94,20 +95,35 @@ export async function generate(input: string) {
   return { object: stream.value };
 }
 
-export async function getWhisperTranscription() {
+export async function getWhisperTranscription(formData: FormData) {
   "use server";
-
-  console.log("getWhisperTranscription called");
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
+  console.log("getWhisperTranscription called");
+  console.log("formData: ", formData);
+
+  const file = formData.get("file") as File;
+  // Luodaan väliaikainen tiedosto
+  const tempDir = path.join(process.cwd(), "temp");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+  const tempFilePath = path.join(tempDir, `${"Temp"}.webm`);
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  fs.writeFileSync(tempFilePath, buffer);
+
   // Lähetä tiedosto Whisper API:lle
   const response = await openai.audio.transcriptions.create({
-    file: fs.createReadStream("./audioTest.m4a"),
+    file: fs.createReadStream(tempFilePath),
     model: "whisper-1",
   });
-  console.log("Whisperin vastaus: ", response.text);
+
+    // Poistetaan väliaikainen tiedosto
+    fs.unlinkSync(tempFilePath);
+  // console.log("Whisperin vastaus: ", response.text);
 
   return response.text;
 }

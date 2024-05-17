@@ -13,15 +13,14 @@ import dotenv from "dotenv";
 
 delete process.env.OPENAI_API_KEY;
 
-dotenv.config({ path: "./.env.local"});
+dotenv.config({ path: "./.env.local" });
 
 (async () => {
   const output_parsers = new StringOutputParser();
   const splitter = new RecursiveCharacterTextSplitter();
 
   const embeddings = new OpenAIEmbeddings();
-  console.log('API KEY:', process.env.OPENAI_API_KEY)
-  
+
   const chatModel = new ChatOpenAI({
     model: "gpt-4o",
     apiKey: process.env.OPENAI_API_KEY,
@@ -64,7 +63,7 @@ dotenv.config({ path: "./.env.local"});
   });
 
   const result = await retrievalChain.invoke({
-    input: "Missä pieni lapsi pelastettiin?",
+    input: "Mitä valkoposkihanhista kerrotaan?",
   });
 
   console.log(result.answer);

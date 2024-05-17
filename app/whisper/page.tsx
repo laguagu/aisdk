@@ -1,33 +1,70 @@
 "use client";
-import React from "react";
-import { useState } from "react";
+
+import { useState, useRef } from "react";
 import { getWhisperTranscription } from "../actions";
-import fs from 'fs';
-import path from 'path';
 
-export default function Page() {
-  const [file, setFile] = useState(null);
+export default function Home() {
+  const [recording, setRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [transcription, setTranscription] = useState("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = (event: any) => {
-    setFile(event.target.files[0]);
+  const handleStartRecording = () => {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm",
+      });
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioBlob(event.data);
+          const audioURL = URL.createObjectURL(event.data);
+          setAudioURL(audioURL);
+        }
+      };
+
+      mediaRecorder.start();
+      setRecording(true);
+    });
   };
 
-  const handleSubmit = async (event: any) => {
+  const handleStopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    try {
-      const response = await getWhisperTranscription();
-      console.log(response);
-    } catch (error) {
-      console.error("Error transcribing audio:", error);
+
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.webm");
+      const audio = await getWhisperTranscription(formData)
+      console.log("audio: ", audio);
+      
     }
   };
 
   return (
     <div className="p-20">
+      <button onClick={recording ? handleStopRecording : handleStartRecording}>
+        {recording ? "Stop Recording" : "Start Recording"}
+      </button>
+      {audioURL && <audio src={audioURL} controls />}
       <form onSubmit={handleSubmit}>
-        <input type="file" accept="audio/*" onChange={handleFileChange} />
-        <button type="submit">Transcribe Audio</button>
+        <button type="submit" disabled={!audioBlob}>
+          Transcribe Audio
+        </button>
       </form>
+      {transcription && (
+        <div>
+          <h2>Transcription:</h2>
+          <p>{transcription}</p>
+        </div>
+      )}
     </div>
   );
 }

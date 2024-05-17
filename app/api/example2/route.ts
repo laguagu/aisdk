@@ -60,7 +60,7 @@ Your role is to offer accurate and thoughtful responses that reflect Nikari's de
 As you formulate your responses, consider the principles of craftsmanship and customer care that Nikari upholds. 
 Provide detailed advice, maintenance tips, or insights into furniture design, tailored to the nuances of the question. Use a tone that is professional yet approachable, mirroring the ethos of a brand that values both heritage and innovation in design.
 
-Answer the question based on the following context and chat history (if any). If you don't know the answer, just say that you don't know, don't try to make up an answer:
+Answer the question based on the following context and chat history (if any). If the context is not relevant to the question, disregard it:
 <context>
   {context}
 </context>
@@ -71,6 +71,7 @@ Answer the question based on the following context and chat history (if any). If
 
 Question: {question}
 `;
+
 const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
 
 export async function POST(req: NextRequest) {
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     // Alustaa OpenAI-mallin ja Supabase-asiakasohjelman.
     const model = new ChatOpenAI({
-      modelName: "gpt-4-turbo",
+      modelName: "gpt-4o",
       temperature: 0.2,
       verbose: true, // Tulostaa lisätietoja, jos true
       streaming: true,
@@ -118,9 +119,9 @@ export async function POST(req: NextRequest) {
     ]);
 
     let resolveWithDocuments: (value: Document[]) => void;
-    const documentPromise = new Promise<Document[]>((resolve) => {
-      resolveWithDocuments = resolve;
-    });
+    // const documentPromise = new Promise<Document[]>((resolve) => {
+    //   resolveWithDocuments = resolve;
+    // });
 
     // Hakee dokumentit Supabase-tietokannasta.
     const retriever = vectorstore.asRetriever({
