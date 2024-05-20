@@ -7,7 +7,7 @@ import { HumanMessage } from "@langchain/core/messages";
 import fs from "fs";
 import { z } from "zod";
 
-function fileToBase64(filePath){
+function fileToBase64(filePath) {
   return fs.readFileSync(filePath, "base64");
 }
 
