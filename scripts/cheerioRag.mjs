@@ -13,7 +13,11 @@ import dotenv from "dotenv";
 
 delete process.env.OPENAI_API_KEY;
 
-dotenv.config({ path: "./.env.local" });
+dotenv.config({ path: "../.env.local" });
+
+console.log('process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY);
+
+
 
 (async () => {
   const output_parsers = new StringOutputParser();
@@ -63,10 +67,11 @@ dotenv.config({ path: "./.env.local" });
   });
 
   const result = await retrievalChain.invoke({
-    input: "Mitä valkoposkihanhista kerrotaan?",
+    input: "Mikä on kolmas uutinen?",
+    
   });
 
-  console.log(result.answer);
+  console.log(result);
 
   // const prompTemplate = PromptTemplate.fromTemplate(
   //   "Tell me about {question}?",
