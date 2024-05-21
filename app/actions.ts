@@ -154,7 +154,7 @@ export async function continueConversation(history: Message[]) {
   };
 }
 
-function getWeather({ city, unit }) {
+function getWeather({ city, unit }: { city: string, unit: string }) {
   // This function would normally make an
   // API request to get the weather.
   return { value: 25, description: "Sunny" };
@@ -195,3 +195,5 @@ export async function toolCall(history: Message[]) {
     ],
   };
 }
+
+// Generative UI

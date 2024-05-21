@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
+import { AI } from "./generate-ui-streamui/action";
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -26,7 +26,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        {children}
+        <AI>{children}</AI>
       </body>
     </html>
   );

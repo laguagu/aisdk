@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getNotifications, getRecipe } from "./actions";
 import { useForm } from "react-hook-form";
-import { invokeLangChain } from "@/lib/langchainActions";
+import { basicChatBot, output_parsers } from "@/lib/langchainActions";
 import React from "react";
 
 export type DefaultValues = {
@@ -44,7 +44,11 @@ function MyForm({ defaultValues }: { defaultValues: object }) {
           <input {...register("name")} placeholder="Name" />
           <input {...register("message")} placeholder="Message" />
           <input {...register("minutesAgo")} placeholder="Minutes Ago" />
-          <input type="submit" className="border flex-none w-auto" value={"Lokita arvot"}/>
+          <input
+            type="submit"
+            className="border flex-none w-auto"
+            value={"Lokita arvot"}
+          />
         </form>
       </div>
       <button onClick={handleReset}>Reset values</button>s
@@ -55,11 +59,12 @@ function MyForm({ defaultValues }: { defaultValues: object }) {
 export default function Home() {
   const [formData, setFormData] = useState<object>({});
 
-  const handleLangChain = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLangChain = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     event.preventDefault();
-    const result = await invokeLangChain(null);
-    console.log(result);
-  }
+    const result = await output_parsers();
+  };
 
   const handleClick = async () => {
     const result = await getNotifications(

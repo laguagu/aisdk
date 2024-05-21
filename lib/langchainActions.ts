@@ -10,8 +10,8 @@ import {
   RunnableLambda,
 } from "@langchain/core/runnables";
 import { BaseMessage } from "@langchain/core/messages";
-
-export const invokeLangChain = async (data: any) => {
+import { z } from "zod";
+export const basicChatBot = async (data: any) => {
   const model = new ChatOpenAI({
     model: "gpt-3.5-turbo",
     apiKey: process.env.OPENAI_API_KEY!,
@@ -85,5 +85,50 @@ export const invokeLangChain = async (data: any) => {
   );
 
   console.log(response.content);
-
 };
+
+export async function output_parsers() {
+  // Schema
+  const personSchema = z.object({
+    name: z.string().nullish().describe("The name of the person"),
+    hair_color: z
+      .string()
+      .nullish()
+      .describe("The color of the person's hair if known"),
+    height_in_meters: z
+      .string()
+      .nullish()
+      .describe("Height measured in meters"),
+  });
+  // promptemplate
+  const prompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `You are an expert extraction algorithm.
+  Only extract relevant information from the text.
+  If you do not know the value of an attribute asked to extract,
+  return null for the attribute's value.`,
+    ],
+    // Please see the how-to about improving performance with
+    // reference examples.
+    // ["placeholder", "{examples}"],
+    ["human", "{text}"],
+  ]);
+
+  // llm
+  const llm = new ChatOpenAI({
+    model: "gpt-4o",
+    temperature: 0,
+  });
+  // Chain
+  const runnable = RunnableSequence.from([
+    prompt,
+    llm.withStructuredOutput(personSchema),
+  ]);
+  // Output
+  const text =
+    "The person's name is John Doe. He has brown hair and is 1.8 meters tall.";
+  const response = await runnable.invoke({ text });
+  console.log(response);
+  
+}
