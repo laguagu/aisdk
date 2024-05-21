@@ -17,31 +17,12 @@ export const invokeLangChain = async (data: any) => {
     apiKey: process.env.OPENAI_API_KEY!,
   });
 
-  const messageHistories: Record<string, InMemoryChatMessageHistory> = {};
-
-  const prompt = ChatPromptTemplate.fromMessages([
-    [
-      "system",
-      `You are a helpful assistant who remembers all details the user shares with you.`,
-    ],
-    ["placeholder", "{chat_history}"],
-    ["human", "{input}"],
-  ]);
-
   // Luo filterMessages RunnableLambda instanssin avulla
   const filterMessages = new RunnableLambda({
     func: async ({ chat_history }: { chat_history: BaseMessage[] }) => {
       return chat_history.slice(-10);
     },
   });
-
-  const chain = RunnableSequence.from([
-    RunnablePassthrough.assign({
-      chat_history: filterMessages,
-    }),
-    prompt,
-    model,
-  ]);
 
   const messages = [
     new HumanMessage({ content: "hi! I'm bob" }),
@@ -58,18 +39,51 @@ export const invokeLangChain = async (data: any) => {
     new AIMessage({ content: "yes it is!" }),
   ];
 
-  // Voit käyttää config-objektia, jos haluat määrittää istunnon ID:n esim
+  const messageHistories: Record<string, InMemoryChatMessageHistory> = {};
+
+  const prompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `You are a helpful assistant who remembers all details the user shares with you.`,
+    ],
+    ["placeholder", "{chat_history}"],
+    ["human", "{input}"],
+  ]);
+
+  const chain = RunnableSequence.from([
+    RunnablePassthrough.assign({
+      chat_history: filterMessages,
+    }),
+    prompt,
+    model,
+  ]);
+
+  const withMessageHistory = new RunnableWithMessageHistory({
+    runnable: chain,
+    getMessageHistory: async (sessionId) => {
+      if (messageHistories[sessionId] === undefined) {
+        const messageHistory = new InMemoryChatMessageHistory();
+        await messageHistory.addMessages(messages);
+        messageHistories[sessionId] = messageHistory;
+      }
+      return messageHistories[sessionId];
+    },
+    inputMessagesKey: "input",
+    historyMessagesKey: "chat_history",
+  });
   const config = {
     configurable: {
-      sessionId: "abc2",
+      sessionId: "abc4",
     },
   };
 
-  const response = await chain.invoke(
+  const response = await withMessageHistory.invoke(
     {
-      chat_history: messages,
-      input: "what's my fav ice cream",
+      input: "whats my favorite ice cream?",
     },
+    config
   );
+
   console.log(response.content);
+
 };
