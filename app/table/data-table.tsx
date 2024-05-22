@@ -27,9 +27,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRouter, usePathname } from "next/navigation";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -47,7 +48,10 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { replace } = useRouter();
   const table = useReactTable({
     data,
     columns,
@@ -67,6 +71,14 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const handleRowClick = (row: any) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("id", row.original.id);
+    console.log(router.replace(pathname + "?" + params.toString()));
+    replace(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}/${row.original.id}?${params.toString()}`);
+  };
+
   return (
     <div>
       <div className="flex items-center py-4">
@@ -77,6 +89,7 @@ export function DataTable<TData, TValue>({
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
+          defaultValue={"asd"}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -131,6 +144,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => handleRowClick(row)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -174,9 +188,14 @@ export function DataTable<TData, TValue>({
         </Button>
       </div>
       <div className="flex-1 text-sm text-muted-foreground">
-  {table.getFilteredSelectedRowModel().rows.length} of{" "}
-  {table.getFilteredRowModel().rows.length} row(s) selected.
-</div>
+        {table.getFilteredSelectedRowModel().rows.length} of{" "}
+        {table.getFilteredRowModel().rows.length} row(s) selected.
+        <br />
+        <button onClick={() => console.log(table.getSelectedRowModel().rows)}>
+          {" "}
+          Log selected valuess{" "}
+        </button>
+      </div>
     </div>
   );
 }

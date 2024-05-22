@@ -8,6 +8,7 @@ async function getData(): Promise<Payment[]> {
     amount: 100,
     status: "pending",
     email: "m@example.com",
+    alyaHankeMaksu: true,
   };
 
   const differentPayment: Payment = {
@@ -15,6 +16,7 @@ async function getData(): Promise<Payment[]> {
     amount: 200,
     status: "processing",
     email: "test@example.com",
+    alyaHankeMaksu: false,
   };
 
   const payments = Array(10).fill(payment);

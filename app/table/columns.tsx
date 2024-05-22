@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/checkbox";
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 export type Payment = {
@@ -18,6 +18,7 @@ export type Payment = {
   amount: number;
   status: "pending" | "processing" | "success" | "failed";
   email: string;
+  alyaHankeMaksu: boolean;
 };
 
 export const columns: ColumnDef<Payment>[] = [
@@ -36,7 +37,7 @@ export const columns: ColumnDef<Payment>[] = [
           Email
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -79,6 +80,10 @@ export const columns: ColumnDef<Payment>[] = [
         </DropdownMenu>
       );
     },
+  },
+  {
+    accessorKey: "alyaHankeMakssu",
+    header: "Example",
   },
   {
     id: "select",

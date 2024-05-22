@@ -1,5 +1,5 @@
 "use client";
-// Copyed example from https://github.com/nicoalbanese/ai-sdk-fundamentals/tree/main
+// Copied example from https://github.com/nicoalbanese/ai-sdk-fundamentals/tree/main
 import { useState } from "react";
 import { ClientMessage } from "./action";
 import { useActions, useUIState } from "ai/rsc";

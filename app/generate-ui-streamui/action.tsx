@@ -1,5 +1,5 @@
 "use server";
-// Copyed example from https://github.com/nicoalbanese/ai-sdk-fundamentals/tree/mains
+// Copied example from https://github.com/nicoalbanese/ai-sdk-fundamentals/tree/mains
 import { createAI, getMutableAIState, streamUI } from "ai/rsc";
 import { openai } from "@ai-sdk/openai";
 import { ReactNode } from "react";
