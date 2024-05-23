@@ -89,7 +89,6 @@ export function DataTable<TData, TValue>({
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
-          defaultValue={"asd"}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

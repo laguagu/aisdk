@@ -12,12 +12,15 @@ export default function Home() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const handleStartRecording = () => {
+    // Request access to the user's microphone
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      // Create a new MediaRecorder instance
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "audio/webm",
       });
       mediaRecorderRef.current = mediaRecorder;
 
+      // When the MediaRecorder has data available, create a new Blob and set the audio URL
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           setAudioBlob(event.data);
@@ -39,6 +42,7 @@ export default function Home() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    // if there is an audio blob, send it to the server
     if (audioBlob) {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.webm");

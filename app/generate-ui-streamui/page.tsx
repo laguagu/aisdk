@@ -11,7 +11,7 @@ export default function Home() {
   const { continueConversation } = useActions();
 
   return (
-    <div>
+    <div className="p-10">
       <div>
         {conversation.map((message: ClientMessage) => (
           <div key={message.id}>
