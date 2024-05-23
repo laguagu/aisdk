@@ -20,6 +20,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/supabase-js": "^2.43.1",
     "@tanstack/react-table": "^8.17.3",
+    "@types/react-table": "^7.7.20",
     "ai": "^3.1.12",
     "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.0",
