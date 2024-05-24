@@ -31,6 +31,8 @@ export default function Page({ params }: { params?: { id?: string } }) {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+    console.log(name, value);
+    
     setUser((prevUser) => ({ ...prevUser, [name]: value } as Payment));
   };
 

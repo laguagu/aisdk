@@ -106,7 +106,7 @@ export async function getWhisperTranscription(formData: FormData) {
 
   const file = formData.get("file") as File;
   // Luodaan väliaikainen tiedosto
-  const tempDir = path.join(process.cwd(), "temp");
+  const tempDir = path.join(process.cwd(), "public","temp");
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
@@ -127,6 +127,42 @@ export async function getWhisperTranscription(formData: FormData) {
 
   return response.text;
 }
+
+export async function getSpeechFromText(text: string) {
+  "use server";
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  console.log("getTextToSpeech called with text: ", text);
+
+  const response = await openai.audio.speech.create({
+    input: text,
+    voice: 'alloy',  // Valitse haluamasi ääni
+    model: "tts-1",
+  });
+
+  // Save the audio file to a temporary location
+  const tempDir = path.join(process.cwd(), "public","temp");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+  const tempFilePath = path.join(tempDir, `tts_output.mp3`);
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  fs.writeFileSync(tempFilePath, buffer);
+
+  // Return the path to the audio file
+  const audioURL = `/temp/tts_output.mp3`;
+  return audioURL;
+}
+
+// Client-side code
+const handleListenToSpeech = async () => {
+  const text = "Hello, world!";
+  const audioFilePath = await getSpeechFromText(text);
+  const audio = new Audio(audioFilePath);
+  audio.play();
+};
 
 export async function continueConversation(history: Message[]) {
   "use server";
