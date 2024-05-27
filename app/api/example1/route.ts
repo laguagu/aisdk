@@ -6,7 +6,10 @@ import {
 import { ChatOpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { HttpResponseOutputParser } from 'langchain/output_parsers';
-
+import {
+    BytesOutputParser,
+    StringOutputParser,
+  } from "@langchain/core/output_parsers";
 import { JSONLoader } from "langchain/document_loaders/fs/json";
 import { RunnableSequence } from '@langchain/core/runnables'
 import { formatDocumentsAsString } from 'langchain/util/document';
@@ -27,7 +30,7 @@ const formatMessage = (message: VercelChatMessage) => {
     return `${message.role}: ${message.content}`;
 };
 
-const TEMPLATE = `Answer the user's questions based only on the following context. If the answer is not in the context, reply politely that you do not have that information available.:
+const TEMPLATE = `Answer the user's questions based only on the following context. If the answer is not in the context, reply politely "I'm sorry, but I do not have that information available.".:
 ==============================
 Context: {context}
 ==============================
@@ -43,10 +46,9 @@ export async function POST(req: Request) {
         const { messages } = await req.json();
 
         const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
-        console.log(formattedPreviousMessages);
-        
+
         const currentMessageContent = messages[messages.length - 1].content;
-        console.log("Current Message:",currentMessageContent);
+
         
      
         const docs = await loader.load();
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
         // })]);
 
         const prompt = PromptTemplate.fromTemplate(TEMPLATE);
-        console.log("Prompt:",prompt);
+
         
         const model = new ChatOpenAI({
             apiKey: process.env.OPENAI_API_KEY!,
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
          * Chat models stream message chunks rather than bytes, so this
          * output parser handles serialization and encoding.
         */
-       const parser = new HttpResponseOutputParser();
+       const parser = new StringOutputParser();
        
        const chain = RunnableSequence.from([
            {
@@ -95,13 +97,28 @@ export async function POST(req: Request) {
             model,
             parser,
         ]);
-        
+        const resultString = await chain.invoke({
+            chat_history: formattedPreviousMessages.join('\n'),
+            question: currentMessageContent,
+        });
+
+          const responseText = JSON.stringify(resultString, null, 2);
+          if (responseText.includes("I'm sorry, but I do not have that information available.")) {
+            console.log('Täällä ollaan!');
+            return new Response(resultString);
+          }
+      
+          console.log(
+            "response JSOOOOOOOOOOOOOOOOOON: ",
+            JSON.stringify(resultString, null, 2)
+          );
+      
         // Convert the response into a friendly text-stream
         const stream = await chain.stream({
             chat_history: formattedPreviousMessages.join('\n'),
             question: currentMessageContent,
         });
-
+        return new Response(stream);
         // Respond with the stream
         return new StreamingTextResponse(
             stream.pipeThrough(createStreamDataTransformer()),

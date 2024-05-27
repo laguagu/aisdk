@@ -3,65 +3,15 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useChat } from "ai/react";
-import { useRef, useEffect, useState } from "react";
-import { Message } from "ai";
-import { v4 as uuidv4 } from 'uuid';
+import { useRef, useEffect } from "react";
 
 export default function Chat() {
-  const {
-    messages: primaryMessages,
-    input,
-    append,
-    setMessages,
-    handleInputChange,
-    handleSubmit,
-    setInput,
-    isLoading,
-  } = useChat({
-    api: "api/example1",
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: "api/example2",
     onError: (e) => {
       console.log(e);
     },
   });
-
-  const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim()) return; // Prevent sending empty messages or multiple messages while loading
-    const messagesWithUserReply = primaryMessages.concat({
-      id: primaryMessages.length.toString(),
-      content: input,
-      role: "user",
-    });
-
-    setMessages(messagesWithUserReply);
-
-    setInput("");
-
-    const response = await fetch('api/example1', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: messagesWithUserReply,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to send message", response);
-      return;
-    }
-    const newMessages = messagesWithUserReply;
-
-    const responseText = await response.text();
-    const gptAnswer = responseText;
-
-    setMessages([
-      ...newMessages,
-      { id: primaryMessages.length.toString(), role: "assistant", content: gptAnswer },
-    ]);
-  };
-
   const chatParent = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -79,7 +29,7 @@ export default function Chat() {
 
       <section className="p-4">
         <form
-          onSubmit={sendMessage}
+          onSubmit={handleSubmit}
           className="flex w-full max-w-3xl mx-auto items-center"
         >
           <Input
@@ -89,7 +39,7 @@ export default function Chat() {
             value={input}
             onChange={handleInputChange}
           />
-          <Button className="ml-2" type="submit" disabled={isLoading}>
+          <Button className="ml-2" type="submit">
             Submit
           </Button>
         </form>
@@ -100,7 +50,7 @@ export default function Chat() {
           ref={chatParent}
           className="h-1 p-4 flex-grow bg-muted/50 rounded-lg overflow-y-auto flex flex-col gap-4"
         >
-          {primaryMessages.map((m, index) => (
+          {messages.map((m, index) => (
             <div key={index}>
               {m.role === "user" ? (
                 <li key={m.id} className="flex flex-row">

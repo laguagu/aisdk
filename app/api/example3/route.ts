@@ -158,9 +158,24 @@ export async function POST(req: NextRequest) {
         chat_history: (input) => input.chat_history, // Saa keskusteluhistorian syötteenä
       },
       answerChain,
-      new BytesOutputParser(),
+      new StringOutputParser(),
     ]);
 
+    const resultString = await conversationalRetrievalQAChain.invoke({
+      question: currentMessageContent,
+      chat_history: formatVercelMessages(previousMessages), // Muotoilee keskusteluhistorian
+    });
+    const responseText = JSON.stringify(resultString, null, 2);
+    if (responseText.includes("i dont know")) {
+      return NextResponse.json({ error: "I don't know" }, { status: 404 });
+    }
+
+    console.log(
+      "response JSOOOOOOOOOOOOOOOOOON: ",
+      JSON.stringify(resultString, null, 2)
+    );
+
+    // return new Response(result, { status: 200 });
     // Lähettää vastauksen streamattuna takaisin klientille.
     const stream = await conversationalRetrievalQAChain.stream({
       question: currentMessageContent,
@@ -168,9 +183,7 @@ export async function POST(req: NextRequest) {
     });
     console.log("Response sent");
 
-    return new StreamingTextResponse(
-      stream.pipeThrough(createStreamDataTransformer()) // Luo ja muuntaa streamin vastaukselle
-    );
+    return new StreamingTextResponse(stream);
   } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
