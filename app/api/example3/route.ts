@@ -31,10 +31,13 @@ const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
 
-const TEMPLATE = `Answer the user's questions based solely on the context provided. If the information is not available in the context, respond politely with "I'm sorry, but I do not have that information available." Do not generate or fabricate any information beyond what is given in the context.
-Context: {context}
+const TEMPLATE = `You are an AI assistant with access to specific information provided in the context below. Your role is to answer the user's questions as accurately as possible using the context. If the answer is found in the context, provide a detailed and accurate response. If the information is not available in the context, respond politely with "I'm sorry, but I do not have that information available." Do not generate or fabricate any information beyond what is given in the context.
 ==============================
-Current conversation: {chat_history}
+Context:
+{context}
+==============================
+Current conversation:
+{chat_history}
 
 user: {question}
 assistant:`;

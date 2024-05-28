@@ -81,7 +81,7 @@ export async function getAnswerFromExample2(input: {
 }) {
   console.log("Request received");
   console.log("input", input);
-
+  return "Hello, world!";
   try {
     const messages = input.messages ?? []; // Ottaa viestit syötteestä tai tyhjän taulukon, jos viestejä ei ole
     const previousMessages = messages.slice(0, -1); // Ottaa kaikki viestit paitsi viimeisen
