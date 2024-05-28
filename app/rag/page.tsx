@@ -18,7 +18,7 @@ export default function Chat() {
     setInput,
     isLoading,
   } = useChat({
-    api: "api/example1",
+    api: "api/example3",
     onError: (e) => {
       console.log(e);
     },
@@ -37,7 +37,7 @@ export default function Chat() {
 
     setInput("");
 
-    const response = await fetch('api/example1', {
+    const response = await fetch('api/example3', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
