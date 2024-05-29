@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Gemini/Google
 google-credentials.json
+
+# data
+arabiaKaikkiTilaukset.json
