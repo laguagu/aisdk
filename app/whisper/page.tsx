@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { getSpeechFromText, getWhisperTranscription } from "../actions";
+import { useState, useRef, useEffect } from "react";
+import { deleteTempFile, getSpeechFromText, getWhisperTranscription } from "../actions";
 
 export default function Home() {
   const [recording, setRecording] = useState(false);
@@ -9,7 +9,6 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [transcription, setTranscription] = useState("");
-  const fileRef = useRef<HTMLInputElement | null>(null);
   const [ttsURL, setTtsURL] = useState("");
   const [text, setText] = useState("");
 
@@ -17,6 +16,12 @@ export default function Home() {
     // Request access to the user's microphone
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       // Create a new MediaRecorder instance
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current = null;
+        setAudioBlob(null);
+        setAudioURL("");
+      }
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "audio/webm",
       });
@@ -35,6 +40,7 @@ export default function Home() {
     });
   };
 
+  
   const handleStopRecording = () => {
     mediaRecorderRef.current?.stop();
     setRecording(false);
@@ -47,11 +53,32 @@ export default function Home() {
     if (audioBlob) {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.webm");
-      const audio = await getWhisperTranscription(formData);
-      console.log("audio: ", audio);
+      const transcriptionText = await getWhisperTranscription(formData);
+      setTranscription(transcriptionText);
+      setText(transcriptionText); // Set text for TTS
     }
   };
 
+  useEffect(() => {
+    if (transcription) {
+      const fetchTTS = async () => {
+        const ttsAudioURL = await getSpeechFromText(transcription);
+        setTtsURL(ttsAudioURL);
+        console.log("ttsAudioURL: ", ttsAudioURL);
+        
+        const audio = new Audio(ttsAudioURL);
+        audio.onended = async () => {
+          // Delete the temporary file when the audio has finished playing
+          await deleteTempFile(ttsAudioURL);
+        };
+        audio.play();
+      };
+      fetchTTS();
+    }
+  }, [transcription]);
+
+
+  // Buttons for text to speech
   const handleTTS = async (event: React.FormEvent) => {
     event.preventDefault();
     if (text) {
@@ -60,10 +87,6 @@ export default function Home() {
     }
   };
 
-  const handleListenToSpeech = async () => {
-    const audio = new Audio(ttsURL);
-    audio.play();
-  };
 
   return (
     <div className="p-20">
@@ -101,7 +124,6 @@ export default function Home() {
         <div className="mt-2">
           <h2>Generated Speech:</h2>
           <audio src={ttsURL} controls />
-          <button onClick={handleListenToSpeech}>Listen to Speech</button>
         </div>
       )}
     </div>

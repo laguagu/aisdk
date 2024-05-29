@@ -17,6 +17,11 @@ export const dynamic = "force-dynamic";
  * https://js.langchain.com/docs/modules/data_connection/document_transformers/text_splitters/recursive_text_splitter
  * https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/supabase
  */
+// Helper function to preprocess data
+function preprocessText(text: string): string {
+  // Remove extra whitespace, special characters, etc.
+  return text.replace(/\s+/g, ' ').trim();
+}
 export async function POST(req: NextRequest) {
   //   function replaceMarkdownLinks(careInstructionsText: string) {
   //     // This will replace markdown links with the format "Link Text (URL)"

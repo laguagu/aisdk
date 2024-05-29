@@ -106,11 +106,12 @@ export async function getWhisperTranscription(formData: FormData) {
 
   const file = formData.get("file") as File;
   // Luodaan väliaikainen tiedosto
-  const tempDir = path.join(process.cwd(), "public","temp");
+  const tempDir = path.join(process.cwd(), "public", "temp");
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
-  const tempFilePath = path.join(tempDir, `${"Temp"}.webm`);
+  const uniqueId = nanoid();
+  const tempFilePath = path.join(tempDir, `Temp_${uniqueId}.webm`);
 
   const buffer = Buffer.from(await file.arrayBuffer());
   fs.writeFileSync(tempFilePath, buffer);
@@ -121,9 +122,8 @@ export async function getWhisperTranscription(formData: FormData) {
     model: "whisper-1",
   });
 
-    // Poistetaan väliaikainen tiedosto
-    fs.unlinkSync(tempFilePath);
-  // console.log("Whisperin vastaus: ", response.text);
+  // Poistetaan väliaikainen tiedosto
+  fs.unlinkSync(tempFilePath);
 
   return response.text;
 }
@@ -137,32 +137,36 @@ export async function getSpeechFromText(text: string) {
 
   const response = await openai.audio.speech.create({
     input: text,
-    voice: 'alloy',  // Valitse haluamasi ääni
+    voice: "alloy", // Valitse haluamasi ääni
     model: "tts-1",
   });
 
   // Save the audio file to a temporary location
-  const tempDir = path.join(process.cwd(), "public","temp");
+  const tempDir = path.join(process.cwd(), "public", "temp");
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
-  const tempFilePath = path.join(tempDir, `tts_output.mp3`);
+  const uniqueId = nanoid();
+  const tempFilePath = path.join(tempDir, `tts_output_${uniqueId}.mp3`);
 
   const buffer = Buffer.from(await response.arrayBuffer());
   fs.writeFileSync(tempFilePath, buffer);
 
   // Return the path to the audio file
-  const audioURL = `/temp/tts_output.mp3`;
+  const audioURL = `/temp/tts_output_${uniqueId}.mp3`;
   return audioURL;
 }
 
-// Client-side code
-const handleListenToSpeech = async () => {
-  const text = "Hello, world!";
-  const audioFilePath = await getSpeechFromText(text);
-  const audio = new Audio(audioFilePath);
-  audio.play();
-};
+export async function deleteTempFile(fileUrl: string) {
+  "use server";
+  const filePath = path.join(process.cwd(), "public", fileUrl);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  } else {
+    console.log(`File ${filePath} does not exist`);
+  }
+}
+
 
 export async function continueConversation(history: Message[]) {
   "use server";
@@ -190,7 +194,7 @@ export async function continueConversation(history: Message[]) {
   };
 }
 
-function getWeather({ city, unit }: { city: string, unit: string }) {
+function getWeather({ city, unit }: { city: string; unit: string }) {
   // This function would normally make an
   // API request to get the weather.
   return { value: 25, description: "Sunny" };
