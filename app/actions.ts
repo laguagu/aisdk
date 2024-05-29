@@ -154,19 +154,18 @@ export async function getSpeechFromText(text: string) {
 
   // Return the path to the audio file
   const audioURL = `/temp/tts_output_${uniqueId}.mp3`;
-  return audioURL;
+  return { audioURL, tempFilePath };
 }
 
-export async function deleteTempFile(fileUrl: string) {
+export async function deleteTempFile(filePath: string) {
   "use server";
-  const filePath = path.join(process.cwd(), "public", fileUrl);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
+    console.log(`Deleted file: ${filePath}`);
   } else {
     console.log(`File ${filePath} does not exist`);
   }
 }
-
 
 export async function continueConversation(history: Message[]) {
   "use server";
