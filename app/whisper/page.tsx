@@ -92,6 +92,7 @@ export default function Home() {
           <p>{transcription}</p>
         </div>
       )}
+      {/* Text to speech */}
       <div className="mt-5 bg-red-50">
         <h2 className="font-bold">Text to Speech</h2>
         <form onSubmit={handleTTS}>

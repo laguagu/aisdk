@@ -93,31 +93,13 @@ export async function POST(req: Request) {
       model,
       parser,
     ]);
-    const resultString = await chain.invoke({
-      chat_history: formattedPreviousMessages.join("\n"),
-      question: currentMessageContent,
-    });
-
-    const responseText = JSON.stringify(resultString, null, 2);
-    if (
-      responseText.includes(
-        "I'm sorry, but I do not have that information available."
-      )
-    ) {
-      console.log("Täällä ollaan!");
-      return new Response(resultString);
-    }
-
-    console.log(
-      "response JSOOOOOOOOOOOOOOOOOON: ",
-      JSON.stringify(resultString, null, 2)
-    );
 
     // Convert the response into a friendly text-stream
     const stream = await chain.stream({
       chat_history: formattedPreviousMessages.join("\n"),
       question: currentMessageContent,
     });
+
     // return new Response(stream);
     // Respond with the stream
     return new StreamingTextResponse(

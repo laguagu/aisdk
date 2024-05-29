@@ -101,10 +101,9 @@ export async function getWhisperTranscription(formData: FormData) {
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  console.log("getWhisperTranscription called");
-  console.log("formData: ", formData);
-
   const file = formData.get("file") as File;
+  console.log("getWhisperTranscription called with file: ", file.name);
+  
   // Luodaan väliaikainen tiedosto
   const tempDir = path.join(process.cwd(), "public", "temp");
   if (!fs.existsSync(tempDir)) {
