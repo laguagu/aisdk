@@ -184,7 +184,7 @@ export default function Chat() {
   return (
     <main className="flex flex-col w-full h-screen max-h-dvh bg-background">
       <header className="p-4 border-b w-full max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold">Piiroinen + Hki</h1>
+        <h1 className="text-2xl font-bold">Whiper chat</h1>
       </header>
 
       <section className="p-4">
