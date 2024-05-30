@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useChat } from "ai/react";
 import { useRef, useEffect, useState } from "react";
 import { Message } from "ai";
-import { v4 as uuidv4 } from "uuid";
+import { nanoid } from "nanoid";
 import {
   deleteTempFile,
   getSpeechFromText,
@@ -30,48 +30,110 @@ export default function Chat() {
     setInput,
     isLoading,
   } = useChat({
-    api: `${API_URL}example1`,
+    api: `${API_URL}example2`,
     onError: (e) => {
       console.log(e);
     },
   });
   const [recording, setRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [transcription, setTranscription] = useState("");
-  const [ttsURL, setTtsURL] = useState("");
-  const [text, setText] = useState("");
+
+  async function sendMessageToAPI(messages: Message[], API_URL: string) {
+    const response = await fetch(`${API_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: messages,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to send message", response);
+      return null;
+    }
+
+    const responseText = await response.text();
+    const uniqueId = nanoid();
+    // const gptAnswer = responseText;
+
+    if (responseText !== null) {
+      setMessages([
+        ...messages,
+        {
+          id: uniqueId,
+          role: "assistant",
+          content: responseText,
+        },
+      ]);
+    }
+    return responseText;
+  }
+  const handleAudioData = (data: BlobPart) => {
+    const audioBlob = new Blob([data], { type: "audio/webm" });
+    const audioURL = URL.createObjectURL(audioBlob);
+    return { audioBlob, audioURL };
+  };
+
+  const addUserMessage = (messages: Message[], id: string, content: string) => {
+    return messages.concat({
+      id,
+      content,
+      role: "user",
+    });
+  };
+
+  const addAssistantMessage = (
+    messages: Message[],
+    id: string,
+    content: string
+  ) => {
+    return messages.concat({
+      id,
+      role: "assistant",
+      content,
+    });
+  };
 
   const handleStartRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.stop();
         mediaRecorderRef.current = null;
-        setAudioURL("");
       }
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "audio/webm",
       });
       mediaRecorderRef.current = mediaRecorder;
+      const uniqueId = nanoid();
 
       mediaRecorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
-          const audioBlob = new Blob([event.data], { type: "audio/webm" });
-          const audioURL = URL.createObjectURL(audioBlob);
-          console.log(audioURL,"audioURl");
-          
-          setAudioURL(audioURL);
+          const { audioBlob, audioURL } = handleAudioData(event.data);
 
           const formData = new FormData();
           formData.append("file", audioBlob, "audio.webm");
           const transcriptionText = await getWhisperTranscription(formData);
-          setTranscription(transcriptionText);
-          setText(transcriptionText);
 
-          const ttsResponse: TTSResponse = await getSpeechFromText(
+          let messagesWithUserReply: Message[] = addUserMessage(
+            primaryMessages,
+            uniqueId,
             transcriptionText
           );
-          setTtsURL(ttsResponse.audioURL);
+          setMessages(messagesWithUserReply);
+
+          const llmResponse = await sendMessageToAPI(
+            messagesWithUserReply,
+            "http://localhost:3000/api/simple"
+          );
+
+          console.log(llmResponse);
+          if (!llmResponse) return;
+          
+          const ttsResponse: TTSResponse = await getSpeechFromText(
+            llmResponse
+          );
 
           const audio = new Audio(ttsResponse.audioURL);
           audio.onended = async () => {
@@ -90,59 +152,24 @@ export default function Chat() {
     setRecording(false);
   };
 
-  const handleTTS = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (text) {
-      const ttsResponse: TTSResponse = await getSpeechFromText(text);
-      setTtsURL(ttsResponse.audioURL);
-
-      const audio = new Audio(ttsResponse.audioURL);
-      audio.onended = async () => {
-        await deleteTempFile(ttsResponse.tempFilePath);
-      };
-      audio.play();
-    }
-  };
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return; // Prevent sending empty messages or multiple messages while loading
-    const messagesWithUserReply = primaryMessages.concat({
-      id: primaryMessages.length.toString(),
-      content: input,
-      role: "user",
-    });
+    const uniqueId = nanoid();
+
+    let messagesWithUserReply: Message[] = addUserMessage(
+      primaryMessages,
+      uniqueId,
+      input
+    );
 
     setMessages(messagesWithUserReply);
-
     setInput("");
 
-    const response = await fetch(`${API_URL}example1`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: messagesWithUserReply,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to send message", response);
-      return;
-    }
-    const newMessages = messagesWithUserReply;
-
-    const responseText = await response.text();
-    const gptAnswer = responseText;
-
-    setMessages([
-      ...newMessages,
-      {
-        id: primaryMessages.length.toString(),
-        role: "assistant",
-        content: gptAnswer,
-      },
-    ]);
+    await sendMessageToAPI(
+      messagesWithUserReply,
+      "http://localhost:3000/api/simple"
+    );
   };
 
   const chatParent = useRef<HTMLUListElement>(null);
@@ -162,7 +189,7 @@ export default function Chat() {
 
       <section className="p-4">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={sendMessage}
           className="flex w-full max-w-3xl mx-auto items-center"
         >
           <Input
@@ -178,6 +205,7 @@ export default function Chat() {
           <Button
             className="ml-2"
             onClick={recording ? handleStopRecording : handleStartRecording}
+            disabled={isLoading}
           >
             {recording ? "Stop Recording" : "Start Recording"}
           </Button>

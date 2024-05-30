@@ -30,7 +30,9 @@ const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
 
-const TEMPLATE = `Answer the user's questions based solely on the context provided. If the information is not available in the context, respond politely with "I'm sorry, but I do not have that information available." Do not generate or fabricate any information beyond what is given in the context.
+const TEMPLATE = `Answer the user's questions based solely on the context provided. 
+If the information is not available in the context, respond politely with "I'm sorry, but I do not have that information available.". 
+Do not generate or fabricate any information beyond what is given in the context.
 Context: {context}
 ==============================
 Current conversation: {chat_history}
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
      * output parser handles serialization and encoding.
      */
     // const parser = new StringOutputParser(); // Ei striimaukseen sendMessage kanssa frontendissa
-    const parser = new BytesOutputParser(); // Striimaukseen handleSubmit funktion kanssa frontendissa
+    const parser = new StringOutputParser(); // Striimaukseen handleSubmit funktion kanssa frontendissa
 
     const chain = RunnableSequence.from([
       {
@@ -102,6 +104,7 @@ export async function POST(req: Request) {
 
     // return new Response(stream);
     // Respond with the stream
+    return new StreamingTextResponse(stream);
     return new StreamingTextResponse(
       stream.pipeThrough(createStreamDataTransformer())
     );

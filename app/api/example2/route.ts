@@ -17,7 +17,7 @@ import {
   BytesOutputParser,
   StringOutputParser,
 } from "@langchain/core/output_parsers";
-
+import { formatDocumentsAsString } from "langchain/util/document";
 export const dynamic = "force-dynamic";
 
 // Apufunktio dokumenttien yhdistämiseen yhdeksi tekstiksi.
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const retrievalChain = retriever.pipe(combineDocumentsFn); // Kombinoi haetut dokumentit yhdeksi tekstiksi
+    const retrievalChain = retriever.pipe(formatDocumentsAsString); // Kombinoi haetut dokumentit yhdeksi tekstiksi
 
     // Alustaa ketjun vastauksen generoimiseen.
     const answerChain = RunnableSequence.from([
